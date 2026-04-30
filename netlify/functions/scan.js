@@ -1,21 +1,16 @@
 exports.handler = async function(event, context) {
-    // 1. THE BOUNCER: Security check (Fixed for same-site requests)
     const allowedOrigin = "https://securescan-ai.netlify.app";
     const requestOrigin = event.headers.origin || event.headers.Origin;
 
-    // If there is an ID card, check it. If it's empty (internal request), let it through.
     if (requestOrigin && requestOrigin !== allowedOrigin) {
-        return { 
-            statusCode: 403, 
-            body: JSON.stringify({ error: "Access Denied" }) 
-        };
+        return { statusCode: 403, body: JSON.stringify({ error: "Access Denied" }) };
     }
 
     try {
         const API_KEY = process.env.VIRUSTOTAL_API_KEY;
         const url = event.queryStringParameters.url;
         
-        // 2. Send the URL to VirusTotal for analysis
+        // 1. Send URL to VirusTotal
         const response = await fetch("https://www.virustotal.com/api/v3/urls", {
             method: "POST",
             headers: {
@@ -27,7 +22,16 @@ exports.handler = async function(event, context) {
 
         const initialData = await response.json();
         
-        // 3. Get the analysis results using the ID provided
+        // 2. THE FIX: Did VirusTotal reject us? If so, tell the frontend exactly why!
+        if (initialData.error) {
+            return {
+                statusCode: 500,
+                headers: { "Access-Control-Allow-Origin": allowedOrigin },
+                body: JSON.stringify({ error: `VirusTotal Error: ${initialData.error.message}` })
+            };
+        }
+        
+        // 3. If no error, proceed as normal
         const analysisId = initialData.data.id;
         const resultResponse = await fetch(`https://www.virustotal.com/api/v3/analyses/${analysisId}`, {
             headers: { "x-apikey": API_KEY }
@@ -40,10 +44,13 @@ exports.handler = async function(event, context) {
             headers: { "Access-Control-Allow-Origin": allowedOrigin },
             body: JSON.stringify(data)
         };
+        
     } catch (error) {
+        // 4. THE FIX: Catch real server crashes and print the exact Javascript error
         return { 
             statusCode: 500, 
-            body: JSON.stringify({ error: "Cloud database unreachable." }) 
+            headers: { "Access-Control-Allow-Origin": allowedOrigin },
+            body: JSON.stringify({ error: `Code Crash: ${error.message}` }) 
         };
     }
 };
