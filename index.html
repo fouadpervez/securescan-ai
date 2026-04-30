@@ -261,9 +261,12 @@ if (data.data.attributes.status === "queued") {
 const stats = data.data.attributes.stats;
 const totalScans = stats.harmless + stats.undetected + stats.malicious + stats.suspicious;
 
-                    // 2. The Logic: Danger, Unknown/New, or Safe
-                    if (stats.malicious > 0 || stats.suspicious > 0) {
-                        showResult('danger', 'MALWARE DETECTED!', `Time to kill those custards. ${stats.malicious} security vendors flagged this link as dangerous. Do not open it.`);
+                   // 2. The Logic: Danger, Unknown/New, or Safe
+if (stats.malicious > 0 || stats.suspicious > 0) {
+    showResult('danger', 'MALWARE DETECTED!', `${stats.malicious} security vendors flagged this link as dangerous. Do not open it.`);
+} else {
+    showResult('success', 'SAFE LINK', `Verified by ${totalScans} security vendors. No known threats found.`);
+}
                     } else if (totalScans < 10) {
                         // Brand new link logic
                         showResult('unknown', 'PROCEED WITH CAUTION', `Zero threats found, but this link is virtually unknown (only ${totalScans} scans). It could be a brand-new zero-day phishing site.`);
