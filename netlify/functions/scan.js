@@ -1,5 +1,5 @@
 exports.handler = async function(event, context) {
-    const allowedOrigin = "https://securescan-ai.netlify.app";
+    const allowedOrigin = "https://secure-scan-ai.netlify.app";
     const requestOrigin = event.headers.origin || event.headers.Origin;
 
     if (requestOrigin && requestOrigin !== allowedOrigin) {
