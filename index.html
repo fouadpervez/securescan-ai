@@ -208,17 +208,17 @@
             }
         }
 
-        // Display results
-        function showResult(isDangerous, messageSafe, messageDanger) {
+        // Display results dynamically
+        function showResult(type, title, message) {
             const resultDiv = document.getElementById('result');
             resultDiv.style.display = "block";
             
-            if (isDangerous) {
+            if (type === 'danger') {
                 resultDiv.className = "danger";
-                resultDiv.innerHTML = `🚨 <strong>MALWARE DETECTED!</strong><br><br><span style='font-size:13px; font-weight:normal;'>${messageDanger}</span>`;
+                resultDiv.innerHTML = `🚨 <strong>${title}</strong><br><br><span style='font-size:13px; font-weight:normal;'>${message}</span>`;
             } else {
                 resultDiv.className = "safe";
-                resultDiv.innerHTML = `✅ <strong>SAFE TO OPEN</strong><br><br><span style='font-size:13px; font-weight:normal;'>${messageSafe}</span>`;
+                resultDiv.innerHTML = `✅ <strong>${title}</strong><br><br><span style='font-size:13px; font-weight:normal;'>${message}</span>`;
             }
         }
 
