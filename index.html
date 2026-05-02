@@ -277,12 +277,50 @@
             // We will scan the first selected file for this prototype
             const file = filesToScan[0]; 
 
-            // 🚨 NEW LETHAL EXTENSION BLOCKER 🚨
-            const dangerousExtensions = ['.exe', '.bat', '.scr', '.vbs', '.iso', '.msi'];
+           // 🚨 ADVANCED THREAT DETECTION (Deep File Inspection) 🚨
             const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            const dangerousExtensions = ['.exe', '.bat', '.scr', '.vbs', '.iso', '.msi', '.cmd', '.com'];
 
+            // Threat 1: Basic Extension Check
             if (dangerousExtensions.includes(fileExt)) {
-                showResult('danger', 'CRITICAL THREAT BLOCKED', `You attempted to scan an executable file (${fileExt}). Hackers disguise these as PDFs to install ransomware. Delete this file from your computer immediately.`);
+                showResult('danger', 'CRITICAL THREAT BLOCKED', `You attempted to scan a known executable format (${fileExt}). Stop interacting with this file immediately.`);
+                scanBtn.innerText = "Scan Selected Items";
+                scanBtn.disabled = false;
+                return;
+            }
+
+            // Threat 2: Double Extension Spoofing (e.g., "resume.pdf.exe")
+            const parts = file.name.split('.');
+            if (parts.length > 2 && dangerousExtensions.includes('.' + parts[parts.length - 1].toLowerCase())) {
+                 showResult('danger', 'DECEPTION DETECTED', `This file is hiding its true nature using a double extension. It is a dangerous executable pretending to be safe. Delete it immediately.`);
+                 scanBtn.innerText = "Scan Selected Items";
+                 scanBtn.disabled = false;
+                 return;
+            }
+
+            // Threat 3: Magic Bytes Analysis (The DNA Test)
+            // We read the first 2 raw bytes of the file to see what it *really* is.
+            const getFileDNA = async (targetFile) => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = (e) => {
+                        const arr = new Uint8Array(e.target.result).subarray(0, 2);
+                        let header = "";
+                        for(let i = 0; i < arr.length; i++) {
+                            header += arr[i].toString(16).toUpperCase().padStart(2, '0');
+                        }
+                        resolve(header);
+                    };
+                    reader.readAsArrayBuffer(targetFile.slice(0, 2));
+                });
+            };
+
+            scanBtn.innerText = "Extracting File DNA...";
+            const fileDNA = await getFileDNA(file);
+
+            // "4D5A" is the hexadecimal signature for ALL Windows Executables
+            if (fileDNA === "4D5A" && !dangerousExtensions.includes(fileExt)) {
+                showResult('danger', 'DISGUISED MALWARE BLOCKED', `This file claims to be a "${fileExt}" file, but its digital DNA proves it is a hidden Windows Executable. This is a highly sophisticated attack. Delete it now.`);
                 scanBtn.innerText = "Scan Selected Items";
                 scanBtn.disabled = false;
                 return; // Stop the scan completely
