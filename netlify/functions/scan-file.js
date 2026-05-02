@@ -1,6 +1,6 @@
 exports.handler = async function(event, context) {
     // 1. THE BOUNCER: Security check
-    const allowedOrigin = "https://securescan-ai.netlify.app"; // REPLACE THIS!
+    const allowedOrigin = "https://secure-scan-ai.netlify.app"; // REPLACE THIS!
     const requestOrigin = event.headers.origin || event.headers.Origin;
 
     if (requestOrigin && requestOrigin !== allowedOrigin) {
